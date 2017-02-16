@@ -1,0 +1,281 @@
+py.test your code
+
+Lászlo Kiss-Kollár
+15 Feb 2017
+
+
+* What is pytest
+
+- Python testing library
+- Test runner
+- Challenges xUnit/jUnit testing practices
+- Can be used for non-Python code (C++, JS, etc.)
+- Supports Python2.6+, Python3.3+
+- Can run `unittest` and `nose` tests out of the box
+- Comes with lots of extras
+
+
+* Why not just use Python unittest?
+
+It's not bad, but...
+
+- It is not very Pythonic
+- Lots of boilerplate
+- Test runner is OK but it could be better
+
+Why does this matter?
+
+- Testing makes better software
+- If writing/maintaining tests is hard, tests will suffer
+- Better testing tools can make a big difference in overall software quality
+
+.image pictures/IMG_1412.jpg 100 _
+
+
+* Why pytest?
+
+Function under test
+
+    def func(x):
+        return x + 1
+
+
+Unit test - Python `unittest`
+.play tests/test_simple_unittest.py /^class/,/^\n/
+
+Unit test - `pytest`
+.play tests/test_simple_pytest.py /^def test/,$
+
+* Why pytest?
+
+# TODO rewrite this
+- Simple
+- Reduces boilerplate
+- Great failure messages
+- Robust test runner
+- Plugin support
+- Well documented
+- Lots of extra goodies
+
+* Assertions
+
+
+* Assertions
+
+- Use standard Python `assert`
+- No need to remember assertion function - they are just Python expressions
+- Pytest performs assert introspection to provide details when assertions fail
+
+.play tests/test_assertions.py /^def/,$
+
+.image pictures/assert.jpg 200 _
+
+* Context-aware failure messages
+
+- strings
+.play tests/test_assert_string.py /^def/,$
+
+- lists
+.play tests/test_assert_list.py /^def/,$
+
+- dicts
+.play tests/test_assert_dict.py /^def/,$
+
+- sets
+.play tests/test_assert_set.py /^def/,$
+
+* Asserting on exceptions
+
+- pytest.raises
+.code tests/test_assert_exception.py /^def/,$
+
+* Fixtures
+
+
+
+* Fixtures
+
+"A software test fixture sets up the system for the testing process by providing it with all the necessary code to initialize it, thereby satisfying whatever preconditions there may be.[1] An example could be loading up a database with known parameters from a customer site before running your test."
+
+_Wikipedia_
+
+.image pictures/setup_teardown.jpg 200 _
+
+* Fixtures are passed as arguments
+
+Advantages:
+
+- Tests will only use fixtures they actually need
+- Fixtures can be reused
+- Fixtures can call other fixtures
+
+.play tests/test_fixture.py /^@pytest/,$
+
+#* Reusable fixtures
+#
+#- Fixtures can be shared across the project
+#- … or across multiple projects
+
+#* usefixtures
+#
+#- When the test function doesn’t directly use the fixture
+#
+#.play tests/test_usefixtures.py /^@pytest/,$
+#
+
+* Parametrized fixtures
+
+- All tests using the fixture will be re-ran for all parameters
+
+.play tests/test_parametrised_fixture.py /^@pytest/,$
+
+* Fixtures have scopes
+
+- `function`
+- `class`
+- `module`
+- `session`
+
+.code  tests/test_fixture_scope.py /^@pytest/,$
+
+* Fixture teardown
+
+.play tests/test_fixture_teardown.py /^@pytest/,$
+
+* Fixtures within fixtures
+
+.image pictures/xzibit.jpg
+
+* Fixtures within fixtures
+
+- Fixture functions can use other fixtures
+- Modular fixture design
+- Fixture reusability
+
+.code tests/test_fixture_fixture.py
+
+* Test markers
+
+* Test markers
+
+- Metadata on test functions
+- Change how/if tests are ran
+- Builtin markers: skip/skipifm xfail, parametrize
+- Create custom markers
+
+.image pictures/he-did-that-crayon.jpg 240 _
+
+* skip/skipif
+
+- Skip executing test
+- Always - broken test or code
+
+.code tests/test_skip.py /^@pytest/,$
+
+- Conditionally - e.g. unsupported platform
+
+.code tests/test_skipif.py /^@pytest/,$
+
+
+* xfail
+
+- Skip tests which are expected to fail
+.play tests/test_xfail.py /^@pytest/,$
+
+* Custom markers
+
+.code tests/test_custom_markers.py /^@pytest/,$
+
+.play example_marker_long.sh /^pytest/,/$
+.play example_marker_short.sh /^pytest/,/$
+
+List available markers:
+
+    pytest --markers
+
+* Test parametrization
+
+* Test parametrization
+
+- The problem:
+
+.code tests/test_param_1.py
+
+.image pictures/copypaste2.jpg 200 _
+
+* Parametrized tests to the resuce
+
+.play tests/test_param_2.py /^@pytest/,$
+
+* Monkeypatching
+
+* Monkeypatching
+
+- Simple fixture to monkeypatch code used in our tests
+
+#.play tests/monkeypatch_fail.py /^def/,$
+
+.play tests/monkeypatch_ok.py /^def/,$
+
+Methods:
+
+- setattr/delattr
+- setitem/delitem
+- setenv/delenv
+- syspath_prepend
+- chdir
+- undo
+
+* Test runner
+
+* Test runner
+
+- Can run `unittest` and `nose` tests besides `pytest`
+
+Selecting tests
+
+    pytest test_mod.py   # run tests in module
+    pytest somepath      # run all tests below somepath
+    pytest -k stringexpr # only run tests with names that match the
+                          # "string expression", e.g. "MyClass and not method"
+                          # will select TestMyClass.test_something
+                          # but not TestMyClass.test_method_simple
+    pytest test_mod.py::test_func  # only run tests that match the "node ID",
+                                    # e.g. "test_mod.py::test_func" will select
+                                    # only test_func in test_mod.py
+    pytest test_mod.py::TestClass::test_method  # run a single method in
+                                                 # a single class
+
+* Test runner
+
+- Drop into debugger on error
+    pytest --pdb
+    pytest -x --pdb           # drop into PDB on first failure, then end test session
+    pytest --pdb --maxfail=3  # drop into PDB for first three failures
+
+
+- Print 3 slowest test
+    pytest --durations=3
+
+    ...
+    ======================== slowest 3 test durations =====================================
+    1.00s call     tests/test_custom_markers.py::test_long_running
+    0.00s setup    tests/test_parametrised_fixture.py::test_queue[100]
+    0.00s setup    tests/test_sample.py::test_smoke
+
+    ...
+
+* Test runner
+
+- Create JUnitXML files (Jenkins, etc.)
+
+    pytest --junitxml=path
+
+- Send results to pastebin
+
+    pytest --pastebin=<failed|all>
+
+- And many more...
+
+* Questions?
+
